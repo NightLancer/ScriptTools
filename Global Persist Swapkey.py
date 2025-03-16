@@ -8,10 +8,10 @@ def read_master_ini(master_ini_path):
     try:
         with open(master_ini_path, 'r', encoding='utf-8') as file:
             for line in file:
-                match = re.match(r'\$\\mods\\skinselectimpact\\(?:.*\/)*([^\\]+)\\([^ =]+) = (\d+)', line)
+                match = re.match(r'\$\\mods\\skinselectimpact\\(?:.*\/)*([^\\]+)\\(.+?)\s*= (\d+)', line)
                 if match:
-                    ini_name, swapkey, value = match.groups()
-                    key = str(os.path.join(ini_name, swapkey)).lower()
+                    mod_name, swapkey, value = match.groups()
+                    key = str(os.path.join(mod_name, swapkey)).lower()
                     swapkey_mapping[key] = value
     except FileNotFoundError:
         print(f"!!!d3dx_user.ini file not found at: {master_ini_path}!!!\n")
@@ -30,7 +30,7 @@ def collect_ini(path, ignore=True):
 def update_ini_file(modpath, file_path, swapkey_mapping):
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
-    print(f"Processing  - {os.path.basename(file_path)}\n")
+    print(f"Processing - {os.path.basename(file_path)}\n")
     modified = [False] # Use a list to track modification status (mutable object)
     
     def replace(match):
