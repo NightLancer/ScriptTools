@@ -3,30 +3,25 @@ import os
 import re
 from pathlib import Path
 
+master_ini_content = None
+
 def read_master_ini(master_ini_path):
+    global master_ini_content
     swapkey_mapping = {}
-    namespace_mapping = {}  # New mapping for namespace-based entries
-    
     try:
         with open(master_ini_path, 'r', encoding='utf-8') as file:
-            for line in file:
-                # Try to match the regular file path pattern
+            master_ini_content = file.read() #save in case of namespaces later
+            for line in master_ini_content.splitlines():
                 match = re.match(r'\$\\mods\\(?:.*\/)*([^\\]+)\\(.+?)\s*= (\d+)', line)
                 if match:
                     mod_name, swapkey, value = match.groups()
                     key = str(os.path.join(mod_name, swapkey)).lower()
                     swapkey_mapping[key] = value
                     continue
-                
-                # Try to match the namespace pattern
-                namespace_match = re.match(r'\$\\([a-fA-F0-9_]+)\\(\w+)\s*= (\d+)', line)
-                if namespace_match:
-                    namespace, swapkey, value = namespace_match.groups()
-                    namespace_mapping[(namespace, swapkey)] = value
     except FileNotFoundError:
         print(f"!!!d3dx_user.ini file not found at: {master_ini_path}!!!\n")
     
-    return swapkey_mapping, namespace_mapping
+    return swapkey_mapping
 
 def collect_ini(path, ignore=True):
     ini_files = []
@@ -38,7 +33,7 @@ def collect_ini(path, ignore=True):
                 ini_files.append(os.path.join(root, file))
     return ini_files
 
-def update_ini_file(modpath, file_path, swapkey_mapping, namespace_mapping):
+def update_ini_file(modpath, file_path, swapkey_mapping):
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
     
@@ -46,20 +41,23 @@ def update_ini_file(modpath, file_path, swapkey_mapping, namespace_mapping):
     modified = [False]  # Use a list to track modification status
     
     # Check if the file has a namespace definition
-    namespace_match = re.search(r'namespace\s*=\s*([a-fA-F0-9_]+)', content)
-    namespace = namespace_match.group(1) if namespace_match else None
+    namespace_match = re.search(r'namespace\s*=\s*(.+)', content) #if someone uses it with spaces he's insane.
+    namespace = namespace_match.group(1).strip() if namespace_match else None
     
     def replace(match):
         swapkey = match.group(1)
         old_value = match.group(2)
         
+        key = None
         new_value = None
+        
         if namespace:
-            # Try to find the value in the namespace mapping
-            new_value = namespace_mapping.get((namespace, swapkey))
-            key = f"{namespace}\\{swapkey}"  # For display purposes
+            _namespace = re.sub(r"[\\/]", ".", namespace).lower()   
+            search = re.search(rf"{_namespace}.{swapkey}\s*=\s*(\d+)", master_ini_content)
+            if search:
+                new_value = search.group(1)
+                key = f"{namespace}\\{swapkey}"
         else:
-            # Use the original path-based mapping
             key = (str(Path(file_path).relative_to(modpath))+'\\'+swapkey).lower()
             new_value = swapkey_mapping.get(key)
         
@@ -81,7 +79,7 @@ def find_mod_paths(current_path):
     mods_index = current_path.rfind("Mods")
     
     if mods_index == -1:
-        print("Warning: Not running from within a Mods folder structure!")
+        print("Warning: Not running from within a Mods folder!")
         return None, None
     
     modpath = current_path[:mods_index] + "Mods"
@@ -92,19 +90,19 @@ def find_mod_paths(current_path):
 def main():
     modpath, master_ini_path = find_mod_paths(os.getcwd())
     if not modpath or not master_ini_path:
-        print("Could not determine paths. Please run this script from within the Mods folder structure."); return
+        print("Could not determine paths. Please run this script from within the Mods folder."); return
         
     print(f"Using mod path: {modpath}")
     print(f"Using master INI: {master_ini_path}")
     
-    swapkey_mapping, namespace_mapping = read_master_ini(master_ini_path)
+    swapkey_mapping = read_master_ini(master_ini_path)
     
-    if not swapkey_mapping and not namespace_mapping:
+    if not swapkey_mapping:
         print("No valid mappings found in the d3dx_user.ini.\n"); return
 
     ini_files = collect_ini(os.getcwd())
     for ini_file in ini_files:
-        update_ini_file(modpath, ini_file, swapkey_mapping, namespace_mapping)
+        update_ini_file(modpath, ini_file, swapkey_mapping)
 
 if __name__ == "__main__":
     main()
