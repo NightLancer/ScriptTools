@@ -2,6 +2,11 @@
 import os
 import re
 from pathlib import Path
+import argparse
+
+parser = argparse.ArgumentParser(description="-p --path")
+parser.add_argument('-p', "--path", type=str,  help="path to mod folder")
+args = parser.parse_args()
 
 master_ini_content = None
 
@@ -88,7 +93,8 @@ def find_mod_paths(current_path):
     return modpath, master_ini_path
 
 def main():
-    modpath, master_ini_path = find_mod_paths(os.getcwd())
+    path = args.path if args.path else os.getcwd()
+    modpath, master_ini_path = find_mod_paths(path)
     if not modpath or not master_ini_path:
         print("Could not determine paths. Please run this script from within the Mods folder."); return
         
