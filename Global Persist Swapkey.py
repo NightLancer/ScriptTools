@@ -12,9 +12,9 @@ def read_master_ini(master_ini_path):
         with open(master_ini_path, 'r', encoding='utf-8') as file:
             master_ini_content = file.read() #save in case of namespaces later
             for line in master_ini_content.splitlines():
-                match = re.match(r'\$\\mods\\(?:.*\/)*([^\\]+)\\(.+?)\s*= (\d+)', line)
+                match = re.match(r'\$\\mods\\([^\\]+)\\(.+?)\s*= ([\d\.e\-]+)', line)
                 if match:
-                    mod_name, swapkey, value = match.groups()
+                    mod_name, swapkey, value = match.groups() #mod_name/swapkey difference seems unused
                     key = str(os.path.join(mod_name, swapkey)).lower()
                     swapkey_mapping[key] = value
                     continue
@@ -52,8 +52,8 @@ def update_ini_file(modpath, file_path, swapkey_mapping):
         new_value = None
         
         if namespace:
-            _namespace = re.sub(r"[\\/]", ".", namespace).lower()   
-            search = re.search(rf"{_namespace}.{swapkey}\s*=\s*(\d+)", master_ini_content)
+            _namespace = re.sub(r"[\\/]", ".", namespace).lower() #Eleganto ['ai' can never]
+            search = re.search(rf"{_namespace}.{swapkey}\s*=\s*([\d\.e\-]+)", master_ini_content)
             if search:
                 new_value = search.group(1)
                 key = f"{namespace}\\{swapkey}"
@@ -67,7 +67,7 @@ def update_ini_file(modpath, file_path, swapkey_mapping):
             return f'global persist ${swapkey} = {new_value}'
         return match.group(0)  # Return unchanged if no replacement found
     
-    updated_content = re.sub(r'global persist \$(\w+) = (\d+)', replace, content)
+    updated_content = re.sub(r'global persist \$(\w+) = ([\d\.e\-]+)', replace, content)
     
     if modified[0]:
         with open(file_path, 'w', encoding='utf-8') as f:
