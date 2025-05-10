@@ -110,12 +110,12 @@ def reg_add():
     icon_path = (script_path.parent / 'S.ico')
     try:
         #SaveSwapkeys
-        key_path = r'Directory\Background\shell\SaveSwapkeys'
-        with reg.CreateKey(reg.HKEY_CLASSES_ROOT, key_path) as key:
+        key_path = r'Software\Classes\Directory\Background\shell\SaveSwapkeys'
+        with reg.CreateKey(reg.HKEY_CURRENT_USER, key_path) as key:
             reg.SetValueEx(key, 'Icon', 0, reg.REG_SZ, str(icon_path))
         #SaveSwapkeys\command
         command = key_path + r'\command'
-        with reg.CreateKey(reg.HKEY_CLASSES_ROOT, command) as cmd_key:
+        with reg.CreateKey(reg.HKEY_CURRENT_USER, command) as cmd_key:
             reg.SetValue(cmd_key, None, reg.REG_SZ, f'py "{str(script_path)}" --path "%V"')
         print(Fore_GREEN + "Command registered")
     except PermissionError:
@@ -123,8 +123,8 @@ def reg_add():
 
 def reg_delete():
     try:
-        reg.DeleteKey(reg.HKEY_CLASSES_ROOT, r'Directory\Background\shell\SaveSwapkeys\command')
-        reg.DeleteKey(reg.HKEY_CLASSES_ROOT, r'Directory\Background\shell\SaveSwapkeys')
+        reg.DeleteKey(reg.HKEY_CURRENT_USER, r'Software\Classes\Directory\Background\shell\SaveSwapkeys\command')
+        reg.DeleteKey(reg.HKEY_CURRENT_USER, r'Software\Classes\Directory\Background\shell\SaveSwapkeys')
         print(Fore_GREEN + "Command unregistered")
     except PermissionError: print(Fore_RED + "PermissionError: run as Administrator")
     except FileNotFoundError: print(Fore_YELLOW + "*Command is already deleted*")
