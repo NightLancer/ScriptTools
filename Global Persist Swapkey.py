@@ -1,11 +1,19 @@
 # Author: NightLancerX; License: GPL-3.0 [https://github.com/NightLancer/ScriptTools/blob/main/LICENSE]
 import os
 import re
-from pathlib import Path
+import sys
 import argparse
-from colorama import init, Fore
-init(autoreset=True)
+from pathlib import Path
 import winreg as reg
+try:
+    from colorama import init, Fore
+except ImportError:
+    Fore_GREEN, Fore_RED, Fore_YELLOW = '','',''
+else: 
+    init(autoreset=True)
+    Fore_GREEN = Fore.GREEN
+    Fore_RED = Fore.RED
+    Fore_YELLOW = Fore.YELLOW
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-p', "--path", type=str, help="path to mod folder")
@@ -72,7 +80,7 @@ def update_ini_file(modpath, file_path, swapkey_mapping):
             new_value = swapkey_mapping.get(key)
         
         if new_value and new_value != old_value:
-            print(f"{key.replace('skinselectimpact', '')}, {old_value} -> {Fore.GREEN}{new_value}")
+            print(f"{key.replace('skinselectimpact', '')}, {old_value} -> {Fore_GREEN}{new_value}")
             modified[0] = True
             return f'global persist ${swapkey} = {new_value}'
         return match.group(0)  # Return unchanged if no replacement found
@@ -98,35 +106,34 @@ def find_mod_paths(current_path):
     return modpath, master_ini_path
 
 def reg_add():
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    icon_path = os.path.join(script_dir, 'S.ico')
-    script_path = os.path.join(script_dir, 'Global Persist Swapkey.py')
+    script_path = Path(sys.argv[0]).resolve() #universal py/exe
+    icon_path = (script_path.parent / 'S.ico')
     try:
         #SaveSwapkeys
         key_path = r'Directory\Background\shell\SaveSwapkeys'
         with reg.CreateKey(reg.HKEY_CLASSES_ROOT, key_path) as key:
-            reg.SetValueEx(key, 'Icon', 0, reg.REG_SZ, icon_path)
+            reg.SetValueEx(key, 'Icon', 0, reg.REG_SZ, str(icon_path))
         #SaveSwapkeys\command
         command = key_path + r'\command'
         with reg.CreateKey(reg.HKEY_CLASSES_ROOT, command) as cmd_key:
-            reg.SetValue(cmd_key, None, reg.REG_SZ, f'py "{script_path}" --path "%V"')
-        print(Fore.GREEN + "Command registered")
+            reg.SetValue(cmd_key, None, reg.REG_SZ, f'py "{str(script_path)}" --path "%V"')
+        print(Fore_GREEN + "Command registered")
     except PermissionError:
-        print(Fore.RED + "PermissionError: run as Administrator")
+        print(Fore_RED + "PermissionError: run as Administrator")
 
 def reg_delete():
     try:
         reg.DeleteKey(reg.HKEY_CLASSES_ROOT, r'Directory\Background\shell\SaveSwapkeys\command')
         reg.DeleteKey(reg.HKEY_CLASSES_ROOT, r'Directory\Background\shell\SaveSwapkeys')
-        print(Fore.GREEN + "Command unregistered")
-    except PermissionError: print(Fore.RED + "PermissionError: run as Administrator")
-    except FileNotFoundError: print(Fore.YELLOW + "*Command is already deleted*")
+        print(Fore_GREEN + "Command unregistered")
+    except PermissionError: print(Fore_RED + "PermissionError: run as Administrator")
+    except FileNotFoundError: print(Fore_YELLOW + "*Command is already deleted*")
 
 def main():
     path = args.path if args.path else os.getcwd()
     modpath, master_ini_path = find_mod_paths(path)
     if not modpath or not master_ini_path:
-        print(Fore.RED + "Could not determine paths. Please run this script from within the Mods folder."); return
+        print(Fore_RED + "Could not determine paths. Please run this script from within the Mods folder."); return
         
     print(f"Using mod path: {modpath}")
     print(f"Using master INI: {master_ini_path}")
@@ -134,7 +141,7 @@ def main():
     swapkey_mapping = read_master_ini(master_ini_path)
     
     if not swapkey_mapping:
-        print(Fore.RED + "No valid mappings found in the d3dx_user.ini.\n"); return
+        print(Fore_RED + "No valid mappings found in the d3dx_user.ini.\n"); return
 
     ini_files = collect_ini(os.getcwd())
     for ini_file in ini_files:
