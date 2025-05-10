@@ -4,13 +4,11 @@ Supports XXMI/GIMI/SRMI/ZZMI/3dmigoto/etc as long as `d3dx_user.ini` is located 
 
 ## Setup:
 * Ensure Python is installed (and was added to Path variable during install)
-* Open console(as Admin if needed) and execute: `pip install colorama` (coloring library for better readability)
+  - (Optional) Open console(as Admin if needed) and execute: `pip install colorama` (coloring library for better readability)
 * Advanced (regedit submenu) [\***recommended**\*]:
-  - Put `Global Persist Swapkey.py` and `S.ico` inside any stable path(folder) that won't be renamed/moved
-  - Open console/terminal(**as Administrator**) in that folder and run: `"Global Persist Swapkey.py" -a`<br>
-  ![reg_a](https://github.com/user-attachments/assets/543f9b22-c33f-486a-9466-1f6703c36456)
-    - To delete submenu run: `"Global Persist Swapkey.py" -d`<br>
-    ![reg_d](https://github.com/user-attachments/assets/04de0c17-c4b9-4ecc-85e1-acd405446dac)
+  - Put `Global Persist Swapkey.py`, `S.ico`, `Add Context-menu command.bat`, `Delete Context-menu command.bat` inside any stable path(folder) that won't be renamed/moved
+  - Run `Add Context-menu command.bat` to register submenu<br>
+    - (To delete submenu run `Delete Context-menu command.bat`)<br>
 * Simple (direct script file):
   - (Optional) create shortcut to the script with empty work directory 
     
