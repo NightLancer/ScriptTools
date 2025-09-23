@@ -31,9 +31,8 @@ def make_backup(ini_path):
 
     # Always overwrite existing backup
     shutil.copy2(ini_path, backup_path)
-    print(f"Backup created: {Fore_YELLOW}{backup_name}{Fore.RESET}")
+    print(f"Backup created: {Fore_YELLOW}{backup_name}")
     return backup_path
-
 
 def restore_backups(path):
     restored = 0
@@ -50,12 +49,11 @@ def restore_backups(path):
                     os.remove(ini_path)
 
                 os.rename(backup_path, ini_path)
-                print(f"Restored backup -> {Fore_GREEN}{ini_path}{Fore.RESET}")
+                print(f"Restored backup -> {Fore_GREEN}{ini_path}")
                 restored += 1
 
     if not restored:
         print("No backup files found to restore.")
-
 
 def process(ini_path):
     with open(ini_path, 'r') as file:
@@ -75,9 +73,9 @@ def process(ini_path):
         return text + " && $\SwapLock\\locked == 0"
 
     updated_content = re.sub(pattern, replace_match, content)
-    print(f"Conditions processed: {Fore_GREEN}{count}{Fore.RESET}")
+    print(f"Conditions processed: {Fore_GREEN}{count}")
     if locked:
-        print(f"!! Already locked conditions: {Fore_YELLOW}{locked}{Fore.RESET} !!")
+        print(f"!! Already locked conditions: {Fore_YELLOW}{locked} !!")
 
     if updated_content != content:
         make_backup(ini_path)
@@ -86,7 +84,6 @@ def process(ini_path):
         print(f"{os.path.basename(ini_path)} has been updated.\n")
     else:
         print("No replacements made.\n")
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -103,7 +100,6 @@ def main():
     for ini_file in ini_files:
         print(f"Processing - {os.path.basename(ini_file)}\n")
         process(ini_file)
-
 
 if __name__ == "__main__":
     main()
