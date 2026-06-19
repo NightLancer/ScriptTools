@@ -56,7 +56,7 @@ def restore_backups(path):
         print("No backup files found to restore.")
 
 def process(ini_path):
-    with open(ini_path, 'r') as file:
+    with open(ini_path, 'r', encoding="utf-8") as file:
         content = file.read()
 
     pattern = r"(condition\s*=\s*.*?)(?=\r?\n)"
@@ -79,7 +79,7 @@ def process(ini_path):
 
     if updated_content != content:
         make_backup(ini_path)
-        with open(ini_path, 'w') as file:
+        with open(ini_path, 'w', encoding="utf-8") as file:
             file.write(updated_content)
         print(f"{os.path.basename(ini_path)} has been updated.\n")
     else:

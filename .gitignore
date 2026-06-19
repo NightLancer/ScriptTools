@@ -6,3 +6,4 @@ dist/
 *.zip
 *.txt
 *.png
+.img/
