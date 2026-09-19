@@ -5,6 +5,7 @@ import sys
 import argparse
 from pathlib import Path
 import winreg as reg
+import time
 try:
     from colorama import init, Fore
 except ImportError:
@@ -30,7 +31,7 @@ def read_master_ini(master_ini_path):
         with open(master_ini_path, 'r', encoding='utf-8') as file:
             master_ini_content = file.read() #save in case of namespaces later
             for line in master_ini_content.splitlines():
-                match = re.match(r'\$\\mods\\([^\\]+)\\(.+?)\s*= ([\d\.e\-]+)', line)
+                match = re.match(r'\$\\mods\\([^\\]+)\\(.+?)\s*=\s*([\d\.e\-]+)', line)
                 if match:
                     mod_name, swapkey, value = match.groups() #mod_name/swapkey difference seems unused
                     key = str(os.path.join(mod_name, swapkey)).lower()
@@ -85,7 +86,7 @@ def update_ini_file(modpath, file_path, swapkey_mapping):
             return f'global persist ${swapkey} = {new_value}'
         return match.group(0)  # Return unchanged if no replacement found
     
-    updated_content = re.sub(r'global persist \$(\w+) = ([\d\.e\-]+)', replace, content)
+    updated_content = re.sub(r'global persist \$(\w+)\s*=\s*([\d\.e\-]+)', replace, content)
     
     if modified[0]:
         with open(file_path, 'w', encoding='utf-8') as f:
@@ -103,6 +104,18 @@ def find_mod_paths(current_path):
     modpath = current_path[:mods_index] + "Mods"
     master_ini_path = os.path.join(modpath.rsplit("Mods", 1)[0], "d3dx_user.ini")
     
+    master_ini_paths = [
+        master_ini_path,
+        r"D:\Mods\XXMI-Launcher-Portable\SRMI\d3dx_user.ini",
+    ]
+    now = time.time()
+
+    for path in master_ini_paths:
+        if os.path.exists(path):
+            if now - os.path.getmtime(path) < 600:  # 10 minutes
+                master_ini_path = path
+                break
+    else: print(Fore_YELLOW + "None of specified d3dx_user.ini files were recently updated!\nIf you are using symlinks - make sure alternative paths are correct:\n- " + "\n- ".join(master_ini_paths[1:]))
     return modpath, master_ini_path
 
 def reg_add():
