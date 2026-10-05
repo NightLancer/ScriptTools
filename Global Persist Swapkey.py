@@ -60,7 +60,7 @@ def update_ini_file(modpath, file_path, swapkey_mapping):
     modified = [False]  # Use a list to track modification status
     
     # Check if the file has a namespace definition
-    namespace_match = re.search(r'namespace\s*=\s*(.+)', content) #if someone uses it with spaces he's insane.
+    namespace_match = re.search(r'^\s*namespace\s*=\s*(.+)$', content, re.MULTILINE) #skip
     namespace = namespace_match.group(1).strip() if namespace_match else None
     
     def replace(match):
